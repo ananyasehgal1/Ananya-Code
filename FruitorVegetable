@@ -1,0 +1,33 @@
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score
+
+
+# Sample dataset
+data = np.array([
+    [150, 8],  # Apple
+    [130, 7],  # Pear
+    [300, 4],  # Pumpkin
+    [200, 6],  # Orange
+    [50, 2],   # Carrot
+    [70, 1],   # Cucumber
+    [180, 8],  # Mango
+    [250, 5],  # Eggplant
+    [100, 7],  # Tomato
+    [30, 2],   # Radish
+])
+
+labels = np.array([1, 1, 0, 1, 0, 0, 1, 0, 1, 0])
+X_train, X_test, y_train, y_test = train_test_split(data, labels, test_size=0.2, random_state=42)
+classifier = LogisticRegression()
+classifier.fit(X_train, y_train)
+
+# Make predictions
+y_pred = classifier.predict(X_test)
+# Test with new data
+new_data = np.array([[16, 70], [9, 30]])  # New items to classify
+predictions = classifier.predict(new_data)
+for i, pred in enumerate(predictions):
+    item_type = "Fruit" if pred == 1 else "Vegetable"
+    print(f"Item {i + 1} is predicted to be a: {item_type}")
