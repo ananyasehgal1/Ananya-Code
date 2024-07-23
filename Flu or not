@@ -1,0 +1,40 @@
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from sklearn.preprocessing import StandardScaler
+from sklearn.cluster import KMeans
+from sklearn.decomposition import PCA
+
+# Create synthetic data
+np.random.seed(42)
+data = {
+    'fever': np.random.normal(38, 1, 200),
+    'cough': np.random.normal(5, 2, 200),
+    'fatigue': np.random.normal(7, 3, 200),
+    'muscle_aches': np.random.normal(6, 2.5, 200),
+    'runny_nose': np.random.normal(4, 2, 200),
+}
+
+# Convert to DataFrame
+df = pd.DataFrame(data)
+
+# Standardize the data
+scaler = StandardScaler()
+df_scaled = scaler.fit_transform(df)
+
+# Apply K-means clustering
+kmeans = KMeans(n_clusters=2, random_state=42)
+df['cluster'] = kmeans.fit_predict(df_scaled)
+
+# Visualize the results using PCA
+pca = PCA(n_components=2)
+principal_components = pca.fit_transform(df_scaled)
+df['pca_one'] = principal_components[:, 0]
+df['pca_two'] = principal_components[:, 1]
+
+plt.figure(figsize=(10, 7))
+plt.scatter(df['pca_one'], df['pca_two'], c=df['cluster'], cmap='viridis', marker='o')
+plt.title('K-means Clustering of Flu Symptoms')
+plt.xlabel('Principal Component 1')
+plt.ylabel('Principal Component 2')
+plt.show()
