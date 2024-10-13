@@ -1,0 +1,135 @@
+import tensorflow as tf
+
+device_name = tf.test.gpu_device_name()
+if device_name != '/device:GPU:0':
+  raise SystemError('GPU device not found')
+else:
+  print('Found GPU at: {}'.format(device_name))
+
+_1_ = 'BERT stacks multiple encoders' #@param {type:"string"}
+_2_ = 'Available in over 100 languages' #@param {type:"string"}
+_3_ = 'uses masked language model'
+
+
+df_train = get_finance_train() ### YOUR CODE HERE
+df_test = get_finance_test()
+sentences = df_train["Sentence"].values ### YOUR CODE HERE
+labels = df_train["Label"].values ### YOUR CODE HERE
+
+tokenizer = BertTokenizer.from_pretrained("bert-base-uncased", do_lower_case = True)  ### YOUR CODE HERE
+### YOUR CODE HERE
+print(tokenizer.vocab_size)
+### END CODE
+### YOUR CODE HERE
+tokenizer.tokenize(sentences[0])
+### END CODE
+### YOUR CODE HERE
+print(tokenizer.convert_tokens_to_ids(tokenizer.tokenize(sentences[0])))
+### END CODE
+
+sentences_with_special_tokens = []
+### YOUR CODE HERE
+for sentence in sentences:
+  sentences_with_special_tokens.append("[CLS]" + sentence + " [SEP]")
+### END CODE
+
+tokenized_texts = []
+### YOUR CODE HERE
+for SENTENCE in sentences_with_special_tokens:
+  tokenized_sentence = tokenizer.tokenize(SENTENCE)
+  tokenized_texts.append(tokenized_sentence)
+### END CODE
+
+input_ids = []
+### YOUR CODE HERE
+for TOKENIZED_SENTENCE in tokenized_texts:
+  tokenized_sentences = tokenizer.convert_tokens_to_ids(TOKENIZED_SENTENCE)
+  input_ids.append(tokenized_sentences)
+### END CODE
+
+input_ids = pad_sequences(input_ids,
+                          maxlen=128, ### YOUR CODE HERE
+                          dtype="long",
+                          truncating="post",
+                          padding="post")
+print(input_ids[0])
+
+attention_masks = []
+
+###YOUR CODE HERE###
+for SEQUENCE in input_ids:
+  mask=[float(i>0) for i in SEQUENCE]
+  attention_masks.append(mask)
+###END CODE ###
+
+X_train, X_val, y_train, y_val = train_test_split(input_ids,labels,test_size=0.15,random_state=RND_SEED )
+
+train_masks, validation_masks, _, _ = train_test_split(attention_masks,input_ids, test_size=0.15,random_state=RND_SEED) ### YOUR CODE HERE''
+
+
+train_inputs = torch.tensor(np.array(X_train));
+validation_inputs = torch.tensor(np.array(X_val));
+train_masks = torch.tensor(np.array(train_masks));
+validation_masks = torch.tensor(np.array(validation_masks));
+train_labels = torch.tensor(np.array(y_train));
+validation_labels = torch.tensor(np.array(y_val));
+
+batch_size = 32
+train_data = TensorDataset(train_inputs, train_masks, train_labels);
+train_sampler = RandomSampler(train_data); # Samples data randonly for training
+train_dataloader = DataLoader(train_data, sampler=train_sampler, batch_size=batch_size);
+validation_data = TensorDataset(validation_inputs, validation_masks, validation_labels);
+validation_sampler = SequentialSampler(validation_data); # Samples data sequentially
+validation_dataloader = DataLoader(validation_data, sampler=validation_sampler, batch_size=batch_size);
+
+model = BertForSequenceClassification.from_pretrained(
+    "bert-base-uncased", # Use the 12-layer BERT small model, with an uncased vocab.
+    num_labels = 3,
+    output_attentions = False, # Whether the model returns attentions weights.
+    output_hidden_states = False, # Whether the model returns all hidden-states.
+);
+
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+n_gpu = torch.cuda.device_count()
+
+if tf.test.gpu_device_name() == '/device:GPU:0':
+  # Given that this a huge neural network, we need to explicity specify
+  # in pytorch to run this model on the GPU.
+  model.cuda();
+
+
+optimizer = AdamW(model.parameters(),
+                  lr = 2e-5, ### YOUR CODE HERE
+                  eps = 1e-8
+                )
+epochs = 4
+
+#@title Exercise. Ordered Model Training Steps
+
+_1_ = 'Forward pass (feed data through network)' #@param {type:"string"}
+_2_ = 'Clear out the gradients calculated in the previous pass' #@param {type:"string"}
+_3_ = 'Backward pass (backpropagation)' #@param {type:"string"}
+_4_ = 'Update parameters' #@param {type:"string"}
+_5_ = 'Unpack our data inputs and labels from the DataLoader objects' #@param {type:"string"}
+
+print('{}\n{}\n{}\n{}\n{}'.format(
+    '1. Unpack our data inputs and labels from the DataLoader objects',
+    '2. Clear out the gradients calculated in the previous pass',
+    '3. Forward pass',
+    '4. Backward pass',
+    '5. Update hyperparamters'))
+
+fig = plt.figure(figsize=(12,6))
+plt.title('Loss over Time')
+plt.xlabel('Epochs')
+plt.ylabel('Loss')
+
+### YOUR CODE HERE
+plt.plot(training_loss, label='Training Loss')
+plt.plot(validation_loss, label='Validation Loss')
+### END CODE
+### END CODE
+
+plt.legend()
+plt.show()
+
